@@ -95,7 +95,7 @@ export default function ProductPage() {
       return null;
     }).filter(Boolean) as any[];
 
-    addItem({ productId: product.id, name: product.name, quantity: qty, unitPrice, totalPrice: total, notes, options, addons, imageUrl: product.imageUrl });
+    addItem({ productId: product.id, name: product.name, quantity: qty, price: unitPrice, notes, options, addons }, slug, slug);
     setAdded(true);
     setTimeout(() => router.push(`/r/${slug}`), 1200);
   };

@@ -19,5 +19,8 @@
     "prettier": "^3.0.0"
   },
   "workspaces": ["apps/*", "packages/*"],
-  "engines": { "node": ">=20.0.0" }
+  "engines": { "node": ">=20.0.0" },
+  "prisma": {
+    "seed": "ts-node packages/database/prisma/seed.ts"
+  }
 }
