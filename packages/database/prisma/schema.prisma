@@ -1,0 +1,771 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MANAGER
+  WAITER
+  KITCHEN
+  CASHIER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERING
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum OrderType {
+  DINE_IN
+  DELIVERY
+  TAKEAWAY
+}
+
+enum OrderChannel {
+  WHATSAPP
+  WEBSITE
+  APP
+  POS
+  TABLE_QR
+  PHONE
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  PIX
+  VOUCHER
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  CANCELLED
+}
+
+enum CampaignChannel {
+  WHATSAPP
+  EMAIL
+  BOTH
+}
+
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+  LOSS
+}
+
+enum PrintJobStatus {
+  PENDING
+  PRINTING
+  DONE
+  ERROR
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  CLOSED
+}
+
+enum NotificationType {
+  ORDER_NEW
+  ORDER_STATUS
+  PAYMENT_CONFIRMED
+  LOW_STOCK
+  SUBSCRIPTION_EXPIRING
+  CAMPAIGN_SENT
+  WHATSAPP_CONNECTED
+  WHATSAPP_DISCONNECTED
+}
+
+// ==================== PLAN ====================
+
+model Plan {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  price            Decimal  @db.Decimal(10, 2)
+  currency         String   @default("BRL")
+  interval         String   @default("month")
+  trialDays        Int      @default(7)
+  maxProducts      Int      @default(-1)
+  maxOrders        Int      @default(-1)
+  maxUsers         Int      @default(5)
+  features         Json     @default("[]")
+  stripePriceId    String?
+  asaasPlanId      String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+// ==================== RESTAURANT ====================
+
+model Restaurant {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  description     String?
+  phone           String?
+  email           String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String   @default("BR")
+  logoUrl         String?
+  bannerUrl       String?
+  primaryColor    String   @default("#FF6B00")
+  secondaryColor  String   @default("#1a1a2e")
+  currency        String   @default("BRL")
+  timezone        String   @default("America/Sao_Paulo")
+  isOpen          Boolean  @default(false)
+  acceptsDelivery Boolean  @default(true)
+  acceptsTakeaway Boolean  @default(true)
+  acceptsDineIn   Boolean  @default(true)
+  minimumOrder    Decimal  @default(0) @db.Decimal(10, 2)
+  deliveryFee     Decimal  @default(0) @db.Decimal(10, 2)
+  estimatedTime   Int      @default(30)
+  pixKey          String?
+  pixKeyType      String?
+  stripeAccountId String?
+  asaasCustomerId String?
+  evolutionInstance String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  users         RestaurantUser[]
+  subscription  Subscription?
+  invoices      Invoice[]
+  categories    Category[]
+  products      Product[]
+  orders        Order[]
+  customers     Customer[]
+  tables        Table[]
+  reservations  Reservation[]
+  operatingHours OperatingHour[]
+  deliveryAreas DeliveryArea[]
+  coupons       Coupon[]
+  campaigns     Campaign[]
+  loyaltyProgram LoyaltyProgram?
+  cashRegisters CashRegister[]
+  printers      Printer[]
+  notifications Notification[]
+  webhooks      Webhook[]
+
+  @@index([slug])
+  @@index([isActive])
+}
+
+model RestaurantUser {
+  id           String     @id @default(cuid())
+  restaurantId String
+  name         String
+  email        String
+  password     String
+  role         UserRole   @default(WAITER)
+  phone        String?
+  avatarUrl    String?
+  isActive     Boolean    @default(true)
+  lastLoginAt  DateTime?
+  refreshToken String?
+  emailVerifiedAt DateTime?
+  passwordResetToken String?
+  passwordResetExpiry DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([email, restaurantId])
+  @@index([restaurantId])
+  @@index([email])
+}
+
+// ==================== SUBSCRIPTION ====================
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  restaurantId       String             @unique
+  planId             String
+  status             SubscriptionStatus @default(TRIAL)
+  trialEndsAt        DateTime?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelledAt        DateTime?
+  stripeSubscriptionId String?
+  asaasSubscriptionId  String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  plan       Plan       @relation(fields: [planId], references: [id])
+  invoices   Invoice[]
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  restaurantId   String
+  subscriptionId String?
+  amount         Decimal       @db.Decimal(10, 2)
+  currency       String        @default("BRL")
+  status         PaymentStatus @default(PENDING)
+  dueAt          DateTime?
+  paidAt         DateTime?
+  stripeInvoiceId String?
+  asaasPaymentId  String?
+  pdfUrl         String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  restaurant   Restaurant   @relation(fields: [restaurantId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+}
+
+// ==================== MENU ====================
+
+model Category {
+  id           String   @id @default(cuid())
+  restaurantId String
+  name         String
+  description  String?
+  imageUrl     String?
+  position     Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  products   Product[]
+
+  @@index([restaurantId, position])
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  restaurantId    String
+  categoryId      String
+  name            String
+  description     String?
+  imageUrl        String?
+  price           Decimal  @db.Decimal(10, 2)
+  promotionalPrice Decimal? @db.Decimal(10, 2)
+  cost            Decimal? @db.Decimal(10, 2)
+  sku             String?
+  position        Int      @default(0)
+  isActive        Boolean  @default(true)
+  isAvailable     Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  trackStock      Boolean  @default(false)
+  stockQuantity   Int      @default(0)
+  stockMinimum    Int      @default(0)
+  calories        Int?
+  preparationTime Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  restaurant  Restaurant         @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  category    Category           @relation(fields: [categoryId], references: [id])
+  variations  ProductVariation[]
+  addons      ProductAddon[]
+  orderItems  OrderItem[]
+  stockMovements StockMovement[]
+
+  @@index([restaurantId, categoryId])
+  @@index([restaurantId, isActive])
+}
+
+model ProductVariation {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  required  Boolean  @default(true)
+  min       Int      @default(1)
+  max       Int      @default(1)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product                    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options ProductVariationOption[]
+
+  @@index([productId])
+}
+
+model ProductVariationOption {
+  id          String   @id @default(cuid())
+  variationId String
+  name        String
+  price       Decimal  @db.Decimal(10, 2) @default(0)
+  isDefault   Boolean  @default(false)
+  isAvailable Boolean  @default(true)
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  variation ProductVariation     @relation(fields: [variationId], references: [id], onDelete: Cascade)
+  orderItemOptions OrderItemOption[]
+
+  @@index([variationId])
+}
+
+model ProductAddon {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  required  Boolean  @default(false)
+  min       Int      @default(0)
+  max       Int      @default(5)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options ProductAddonOption[]
+
+  @@index([productId])
+}
+
+model ProductAddonOption {
+  id        String   @id @default(cuid())
+  addonId   String
+  name      String
+  price     Decimal  @db.Decimal(10, 2) @default(0)
+  isAvailable Boolean @default(true)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addon    ProductAddon      @relation(fields: [addonId], references: [id], onDelete: Cascade)
+  orderItemAddons OrderItemAddon[]
+
+  @@index([addonId])
+}
+
+// ==================== CUSTOMER ====================
+
+model Customer {
+  id              String   @id @default(cuid())
+  restaurantId    String
+  name            String
+  phone           String?
+  email           String?
+  birthDate       DateTime?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  totalOrders     Int      @default(0)
+  totalSpent      Decimal  @default(0) @db.Decimal(10, 2)
+  averageTicket   Decimal  @default(0) @db.Decimal(10, 2)
+  loyaltyPoints   Int      @default(0)
+  segment         String   @default("new")
+  lastOrderAt     DateTime?
+  notes           String?
+  isBlocked       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders     Order[]
+
+  @@unique([phone, restaurantId])
+  @@index([restaurantId])
+  @@index([restaurantId, segment])
+}
+
+// ==================== ORDER ====================
+
+model Order {
+  id              String       @id @default(cuid())
+  restaurantId    String
+  customerId      String?
+  tableId         String?
+  couponId        String?
+  orderNumber     Int
+  status          OrderStatus  @default(PENDING)
+  type            OrderType    @default(DELIVERY)
+  channel         OrderChannel @default(WEBSITE)
+  subtotal        Decimal      @db.Decimal(10, 2)
+  discount        Decimal      @default(0) @db.Decimal(10, 2)
+  deliveryFee     Decimal      @default(0) @db.Decimal(10, 2)
+  total           Decimal      @db.Decimal(10, 2)
+  notes           String?
+  deliveryAddress String?
+  estimatedTime   Int?
+  confirmedAt     DateTime?
+  preparingAt     DateTime?
+  readyAt         DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  pixQrCode       String?
+  pixCopyPaste    String?
+  asaasPaymentId  String?
+  whatsappSent    Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customer   Customer?   @relation(fields: [customerId], references: [id])
+  table      Table?      @relation(fields: [tableId], references: [id])
+  coupon     Coupon?     @relation(fields: [couponId], references: [id])
+  items      OrderItem[]
+  payments   Payment[]
+
+  @@unique([restaurantId, orderNumber])
+  @@index([restaurantId, status])
+  @@index([restaurantId, createdAt])
+  @@index([customerId])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  name        String
+  price       Decimal  @db.Decimal(10, 2)
+  quantity    Int
+  total       Decimal  @db.Decimal(10, 2)
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  order   Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product              @relation(fields: [productId], references: [id])
+  options OrderItemOption[]
+  addons  OrderItemAddon[]
+
+  @@index([orderId])
+}
+
+model OrderItemOption {
+  id                String   @id @default(cuid())
+  orderItemId       String
+  variationOptionId String
+  name              String
+  price             Decimal  @db.Decimal(10, 2)
+
+  orderItem        OrderItem              @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  variationOption  ProductVariationOption @relation(fields: [variationOptionId], references: [id])
+}
+
+model OrderItemAddon {
+  id           String   @id @default(cuid())
+  orderItemId  String
+  addonOptionId String
+  name         String
+  price        Decimal  @db.Decimal(10, 2)
+  quantity     Int      @default(1)
+
+  orderItem   OrderItem          @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  addonOption ProductAddonOption @relation(fields: [addonOptionId], references: [id])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  amount        Decimal       @db.Decimal(10, 2)
+  paidAt        DateTime?
+  reference     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+// ==================== TABLE ====================
+
+model Table {
+  id           String      @id @default(cuid())
+  restaurantId String
+  name         String
+  capacity     Int         @default(4)
+  status       TableStatus @default(AVAILABLE)
+  qrCodeUrl    String?
+  qrCodeData   String?
+  section      String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders       Order[]
+  reservations Reservation[]
+
+  @@index([restaurantId])
+}
+
+model Reservation {
+  id           String   @id @default(cuid())
+  restaurantId String
+  tableId      String?
+  name         String
+  phone        String
+  partySize    Int
+  date         DateTime
+  notes        String?
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  table      Table?     @relation(fields: [tableId], references: [id])
+
+  @@index([restaurantId, date])
+}
+
+// ==================== OPERATING HOURS ====================
+
+model OperatingHour {
+  id           String   @id @default(cuid())
+  restaurantId String
+  dayOfWeek    Int
+  isOpen       Boolean  @default(true)
+  openTime     String
+  closeTime    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, dayOfWeek])
+}
+
+model DeliveryArea {
+  id           String   @id @default(cuid())
+  restaurantId String
+  name         String
+  zipCodes     Json     @default("[]")
+  cities       Json     @default("[]")
+  fee          Decimal  @db.Decimal(10, 2) @default(0)
+  minimumOrder Decimal  @db.Decimal(10, 2) @default(0)
+  estimatedTime Int     @default(45)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+}
+
+// ==================== MARKETING ====================
+
+model Coupon {
+  id              String   @id @default(cuid())
+  restaurantId    String
+  code            String
+  description     String?
+  discountType    String   @default("percentage")
+  discountValue   Decimal  @db.Decimal(10, 2)
+  minimumOrder    Decimal  @default(0) @db.Decimal(10, 2)
+  maxUses         Int?
+  usedCount       Int      @default(0)
+  maxUsesPerCustomer Int?
+  validFrom       DateTime?
+  validUntil      DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders     Order[]
+
+  @@unique([code, restaurantId])
+  @@index([restaurantId])
+}
+
+model Campaign {
+  id           String          @id @default(cuid())
+  restaurantId String
+  name         String
+  subject      String?
+  message      String
+  channel      CampaignChannel @default(WHATSAPP)
+  status       CampaignStatus  @default(DRAFT)
+  targetSegment String?
+  recipientCount Int           @default(0)
+  sentCount    Int             @default(0)
+  scheduledAt  DateTime?
+  sentAt       DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+}
+
+model LoyaltyProgram {
+  id              String   @id @default(cuid())
+  restaurantId    String   @unique
+  name            String   @default("Programa de Fidelidade")
+  pointsPerReal   Decimal  @db.Decimal(10, 2) @default(1)
+  redemptionRate  Decimal  @db.Decimal(10, 2) @default(100)
+  minimumPoints   Int      @default(100)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+// ==================== FINANCE ====================
+
+model CashRegister {
+  id             String   @id @default(cuid())
+  restaurantId   String
+  openedById     String
+  closedById     String?
+  openingBalance Decimal  @db.Decimal(10, 2) @default(0)
+  closingBalance Decimal? @db.Decimal(10, 2)
+  totalSales     Decimal  @db.Decimal(10, 2) @default(0)
+  totalCash      Decimal  @db.Decimal(10, 2) @default(0)
+  totalCard      Decimal  @db.Decimal(10, 2) @default(0)
+  totalPix       Decimal  @db.Decimal(10, 2) @default(0)
+  notes          String?
+  openedAt       DateTime @default(now())
+  closedAt       DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+}
+
+model StockMovement {
+  id           String            @id @default(cuid())
+  restaurantId String
+  productId    String
+  type         StockMovementType
+  quantity     Int
+  previousQty  Int
+  newQty       Int
+  reason       String?
+  orderId      String?
+  createdById  String?
+  createdAt    DateTime          @default(now())
+
+  product    Product    @relation(fields: [productId], references: [id])
+
+  @@index([restaurantId, productId])
+  @@index([productId])
+}
+
+// ==================== PRINTER ====================
+
+model Printer {
+  id              String   @id @default(cuid())
+  restaurantId    String
+  name            String
+  type            String   @default("usb")
+  connectionString String?
+  paperWidth      Int      @default(80)
+  printOnNewOrder Boolean  @default(true)
+  printOnReady    Boolean  @default(false)
+  isOnline        Boolean  @default(false)
+  lastSeenAt      DateTime?
+  agentVersion    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  printJobs  PrintJob[]
+
+  @@index([restaurantId])
+}
+
+model PrintJob {
+  id         String         @id @default(cuid())
+  printerId  String
+  template   String
+  data       Json
+  status     PrintJobStatus @default(PENDING)
+  error      String?
+  printedAt  DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  printer Printer @relation(fields: [printerId], references: [id], onDelete: Cascade)
+
+  @@index([printerId, status])
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id           String           @id @default(cuid())
+  restaurantId String
+  type         NotificationType
+  title        String
+  message      String
+  data         Json?
+  isRead       Boolean          @default(false)
+  readAt       DateTime?
+  createdAt    DateTime         @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, isRead])
+  @@index([restaurantId, createdAt])
+}
+
+model Webhook {
+  id           String   @id @default(cuid())
+  restaurantId String
+  url          String
+  events       Json     @default("[]")
+  secret       String?
+  isActive     Boolean  @default(true)
+  lastCalledAt DateTime?
+  failureCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+}
