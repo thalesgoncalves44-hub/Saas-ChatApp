@@ -26,6 +26,15 @@ RUN cd packages/database && \
 
 RUN cd apps/api && npx nest build
 
+RUN cd packages/database && \
+    npx tsc --outDir /app/seed-dist \
+    --esModuleInterop true \
+    --module commonjs \
+    --target es2017 \
+    --moduleResolution node \
+    --skipLibCheck \
+    prisma/seed.ts
+
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -36,6 +45,7 @@ COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/packages/database/prisma ./prisma
 COPY --from=builder /app/packages/database/dist ./packages/database/dist
 COPY --from=builder /app/packages/database/package.json ./packages/database/package.json
+COPY --from=builder /app/seed-dist ./seed-dist
 
 RUN mkdir -p node_modules/@zappai && \
     ln -sf /app/packages/database node_modules/@zappai/database
@@ -45,4 +55,4 @@ ENV PORT=3001
 
 EXPOSE 3001
 
-CMD npx prisma migrate deploy --schema=/app/prisma/schema.prisma && node dist/apps/api/src/main.js
+CMD npx prisma migrate deploy --schema=/app/prisma/schema.prisma && node seed-dist/seed.js && node dist/apps/api/src/main.js
