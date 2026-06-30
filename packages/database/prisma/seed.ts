@@ -128,13 +128,14 @@ async function main() {
     },
   });
 
-  // Skip remaining seed data if already created (idempotent guard)
-  const existingArea = await prisma.deliveryArea.findFirst({ where: { restaurantId: restaurant.id } });
-  if (existingArea) {
-    console.log('Seed data already exists, skipping duplicate creation.');
-    console.log('Seeding complete!');
-    return;
-  }
+  // Clean up existing demo data to avoid duplicates, then recreate fresh
+  await prisma.coupon.deleteMany({ where: { restaurantId: restaurant.id } });
+  await prisma.customer.deleteMany({ where: { restaurantId: restaurant.id } });
+  await prisma.table.deleteMany({ where: { restaurantId: restaurant.id } });
+  await prisma.category.deleteMany({ where: { restaurantId: restaurant.id } });
+  await prisma.deliveryArea.deleteMany({ where: { restaurantId: restaurant.id } });
+
+  console.log('Cleaned up existing demo data.');
 
   // Create Delivery Area
   await prisma.deliveryArea.create({
