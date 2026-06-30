@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { useAuthStore } from '../../store/auth.store';
@@ -10,8 +10,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, restaurant } = useAuthStore();
   const { addOrder, updateOrder } = useOrdersStore();
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (!user || !restaurant) {
       router.replace('/login');
       return;
@@ -40,7 +46,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       socket.off('order:new');
       socket.off('order:updated');
     };
-  }, [user, restaurant]);
+  }, [hydrated, user, restaurant]);
 
   if (!user) {
     return (

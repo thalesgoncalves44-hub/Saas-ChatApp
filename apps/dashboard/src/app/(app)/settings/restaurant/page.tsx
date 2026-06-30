@@ -1,5 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Header } from '../../../../components/layout/Header';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
@@ -19,6 +21,7 @@ const SETTINGS_NAV = [
 
 export default function RestaurantSettingsPage() {
   const { restaurant, updateRestaurant } = useAuthStore();
+  const pathname = usePathname();
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -53,6 +56,7 @@ export default function RestaurantSettingsPage() {
   }, []);
 
   const loadRestaurant = async () => {
+    try {
     const { data } = await api.get('/restaurant');
     setForm({
       name: data.name || '',
@@ -70,6 +74,9 @@ export default function RestaurantSettingsPage() {
       pixKey: data.pixKey || '',
       pixKeyType: data.pixKeyType || 'phone',
     });
+    } catch (err) {
+      console.error('Failed to load restaurant', err);
+    }
   };
 
   const handleSave = async () => {
@@ -92,17 +99,17 @@ export default function RestaurantSettingsPage() {
         <div className="w-56 border-r border-[#2d2d4f] p-4">
           <nav className="space-y-1">
             {SETTINGS_NAV.map((item) => (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                  typeof window !== 'undefined' && window.location.pathname === item.href
+                  pathname === item.href
                     ? 'bg-[#FF6B00]/10 text-[#FF6B00]'
                     : 'text-gray-400 hover:text-white hover:bg-[#1e1e35]'
                 }`}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>
