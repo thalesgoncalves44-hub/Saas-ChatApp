@@ -128,12 +128,24 @@ async function main() {
     },
   });
 
-  // Clean up existing demo data to avoid duplicates, then recreate fresh
+  // Clean up existing demo data — must delete in dependency order
   await prisma.coupon.deleteMany({ where: { restaurantId: restaurant.id } });
   await prisma.customer.deleteMany({ where: { restaurantId: restaurant.id } });
   await prisma.table.deleteMany({ where: { restaurantId: restaurant.id } });
-  await prisma.category.deleteMany({ where: { restaurantId: restaurant.id } });
   await prisma.deliveryArea.deleteMany({ where: { restaurantId: restaurant.id } });
+  // Delete product children before products, products before categories
+  const productIds = (await prisma.product.findMany({
+    where: { restaurantId: restaurant.id },
+    select: { id: true },
+  })).map((p) => p.id);
+  if (productIds.length > 0) {
+    await prisma.productVariationOption.deleteMany({ where: { variation: { productId: { in: productIds } } } });
+    await prisma.productAddonOption.deleteMany({ where: { addon: { productId: { in: productIds } } } });
+    await prisma.productVariation.deleteMany({ where: { productId: { in: productIds } } });
+    await prisma.productAddon.deleteMany({ where: { productId: { in: productIds } } });
+    await prisma.product.deleteMany({ where: { id: { in: productIds } } });
+  }
+  await prisma.category.deleteMany({ where: { restaurantId: restaurant.id } });
 
   console.log('Cleaned up existing demo data.');
 
