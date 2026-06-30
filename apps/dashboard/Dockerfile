@@ -29,4 +29,5 @@ COPY --from=builder /app/apps/dashboard/next.config.js ./apps/dashboard/next.con
 
 EXPOSE 3000
 
-CMD ["/app/node_modules/.bin/next", "start", "-p", "3000", "--prefix", "apps/dashboard"]
+WORKDIR /app/apps/dashboard
+CMD ["/app/node_modules/.bin/next", "start", "-p", "3000"]

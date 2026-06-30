@@ -27,4 +27,5 @@ COPY --from=builder /app/apps/cardapio/next.config.js ./apps/cardapio/next.confi
 
 EXPOSE 3002
 
-CMD ["/app/node_modules/.bin/next", "start", "-p", "3002", "--prefix", "apps/cardapio"]
+WORKDIR /app/apps/cardapio
+CMD ["/app/node_modules/.bin/next", "start", "-p", "3002"]
