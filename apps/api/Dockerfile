@@ -14,6 +14,16 @@ COPY apps/api ./apps/api
 
 RUN npm rebuild bcrypt --build-from-source
 RUN cd packages/database && npx prisma generate
+
+RUN cd packages/database && \
+    npx tsc --outDir dist \
+    --esModuleInterop true \
+    --module commonjs \
+    --target es2017 \
+    --moduleResolution node \
+    --skipLibCheck \
+    src/index.ts
+
 RUN cd apps/api && npx nest build
 
 FROM node:20-alpine AS runner
@@ -24,7 +34,11 @@ RUN apk add --no-cache openssl
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/packages/database/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./.prisma
+COPY --from=builder /app/packages/database/dist ./packages/database/dist
+COPY --from=builder /app/packages/database/package.json ./packages/database/package.json
+
+RUN mkdir -p node_modules/@zappai && \
+    ln -sf /app/packages/database node_modules/@zappai/database
 
 ENV NODE_ENV=production
 ENV PORT=3001
