@@ -114,6 +114,28 @@ async function main() {
     });
   }
 
+  // Create Loyalty Program
+  await prisma.loyaltyProgram.upsert({
+    where: { restaurantId: restaurant.id },
+    update: {},
+    create: {
+      restaurantId: restaurant.id,
+      name: 'Burguer Points',
+      pointsPerReal: 1,
+      redemptionRate: 100,
+      minimumPoints: 500,
+      isActive: true,
+    },
+  });
+
+  // Skip remaining seed data if already created (idempotent guard)
+  const existingArea = await prisma.deliveryArea.findFirst({ where: { restaurantId: restaurant.id } });
+  if (existingArea) {
+    console.log('Seed data already exists, skipping duplicate creation.');
+    console.log('Seeding complete!');
+    return;
+  }
+
   // Create Delivery Area
   await prisma.deliveryArea.create({
     data: {
@@ -175,7 +197,7 @@ async function main() {
     },
   });
 
-  const smashBurger = await prisma.product.create({
+  await prisma.product.create({
     data: {
       restaurantId: restaurant.id,
       categoryId: burguersCategory.id,
@@ -192,7 +214,7 @@ async function main() {
     },
   });
 
-  const fritas = await prisma.product.create({
+  await prisma.product.create({
     data: {
       restaurantId: restaurant.id,
       categoryId: sidesCategory.id,
@@ -207,7 +229,7 @@ async function main() {
     },
   });
 
-  const refrigerante = await prisma.product.create({
+  await prisma.product.create({
     data: {
       restaurantId: restaurant.id,
       categoryId: drinksCategory.id,
@@ -222,7 +244,7 @@ async function main() {
   });
 
   // Create Variations for Classic Burger
-  const pointVariation = await prisma.productVariation.create({
+  await prisma.productVariation.create({
     data: {
       productId: classicBurger.id,
       name: 'Ponto da Carne',
@@ -287,20 +309,6 @@ async function main() {
       loyaltyPoints: 189,
       segment: 'loyal',
       lastOrderAt: new Date(),
-    },
-  });
-
-  // Create Loyalty Program
-  await prisma.loyaltyProgram.upsert({
-    where: { restaurantId: restaurant.id },
-    update: {},
-    create: {
-      restaurantId: restaurant.id,
-      name: 'Burguer Points',
-      pointsPerReal: 1,
-      redemptionRate: 100,
-      minimumPoints: 500,
-      isActive: true,
     },
   });
 
