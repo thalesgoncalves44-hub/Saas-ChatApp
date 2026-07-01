@@ -70,6 +70,7 @@ export default function LandingPage() {
   ];
 
   const faqs = [
+    { q: '💰 Realmente não tem taxa por pedido?', a: 'Sim, 100% real! Você paga apenas a mensalidade fixa de R$ 207/mês e pode processar quantos pedidos quiser — 10 pedidos ou 10.000 pedidos por mês, o preço é o mesmo. Nenhum centavo a mais por pedido.' },
     { q: 'Preciso de conhecimento técnico para usar?', a: 'Não! O ZappAI foi criado para ser simples. Qualquer pessoa consegue cadastrar o restaurante, montar o cardápio e começar a receber pedidos em menos de 1 hora.' },
     { q: 'Como funciona o período de teste gratuito?', a: '7 dias completamente grátis, sem precisar de cartão de crédito. Você usa todas as funcionalidades do Plano Pro sem nenhuma restrição.' },
     { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem multa ou fidelidade. Cancele quando quiser diretamente pelo painel de configurações, sem precisar entrar em contato com ninguém.' },
@@ -87,7 +88,7 @@ export default function LandingPage() {
       {!urgencyDismissed && (
         <div className="bg-[#FF6B00] text-white text-center text-sm py-2 px-4 flex items-center justify-center gap-2 relative">
           <Clock size={14} />
-          <span><strong>Oferta especial:</strong> Primeiros 3 meses com 30% de desconto para novos clientes. Válido até 31/07/2026.</span>
+          <span><strong>Oferta especial:</strong> Primeiros 3 meses com 30% de desconto. Taxa fixa — <strong>zero taxa por pedido</strong>. Válido até 31/07/2026.</span>
           <button onClick={() => setUrgencyDismissed(true)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white">
             <X size={16} />
           </button>
@@ -151,7 +152,7 @@ export default function LandingPage() {
               Ver demonstração
             </a>
           </div>
-          <p className="text-sm text-gray-500 mt-4">✓ Sem cartão &nbsp;✓ 7 dias grátis &nbsp;✓ Cancele quando quiser</p>
+          <p className="text-sm text-gray-500 mt-4">✓ Sem cartão &nbsp;✓ 7 dias grátis &nbsp;✓ Cancele quando quiser &nbsp;✓ <strong className="text-[#FF6B00]">Sem taxa por pedido</strong></p>
         </div>
 
         {/* Dashboard preview */}
@@ -196,6 +197,44 @@ export default function LandingPage() {
           <div>
             <p className="text-5xl font-extrabold text-[#FF6B00]">R$ {revenue}M+</p>
             <p className="text-gray-400 mt-2">Em vendas geradas</p>
+          </div>
+        </div>
+      </section>
+
+      {/* No Per-Order Fee Highlight */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-r from-[#FF6B00]/10 via-[#FF6B00]/5 to-[#FF6B00]/10 border-2 border-[#FF6B00]/40 rounded-2xl p-8 md:p-12 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#FF6B00_0%,_transparent_70%)] opacity-5 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 bg-[#FF6B00] text-white text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-wider">
+                Nosso maior diferencial
+              </div>
+              <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
+                Pagamento fixo.<br />
+                <span className="text-[#FF6B00]">Zero taxa por pedido.</span>
+              </h2>
+              <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-8">
+                Enquanto outros sistemas cobram <strong className="text-white">R$ 0,99 a R$ 2,00 por pedido</strong>, no ZappAI você paga um valor fixo por mês e fica com <strong className="text-white">100% do seu lucro</strong>.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                <div className="bg-[#0d0d1a] border border-[#2d2d4f] rounded-xl p-4">
+                  <p className="text-gray-500 text-xs mb-1">Sistema com taxa de 1%</p>
+                  <p className="text-red-400 font-bold text-lg">−R$ 384/mês</p>
+                  <p className="text-gray-500 text-xs">em 384 pedidos de R$ 100</p>
+                </div>
+                <div className="bg-[#FF6B00]/10 border-2 border-[#FF6B00] rounded-xl p-4">
+                  <p className="text-[#FF6B00] text-xs font-bold mb-1">ZappAI — taxa fixa</p>
+                  <p className="text-white font-bold text-lg">R$ 0 de taxa</p>
+                  <p className="text-gray-400 text-xs">em qualquer volume de pedidos</p>
+                </div>
+                <div className="bg-[#0d0d1a] border border-[#2d2d4f] rounded-xl p-4">
+                  <p className="text-gray-500 text-xs mb-1">Economia anual estimada</p>
+                  <p className="text-green-400 font-bold text-lg">+R$ 4.608/ano</p>
+                  <p className="text-gray-500 text-xs">que ficam no seu bolso</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -283,11 +322,11 @@ export default function LandingPage() {
                   ['Atualização em tempo real', true, true],
                   ['Relatórios financeiros completos', true, false],
                   ['Suporte em português', true, true],
-                  ['Preço justo (sem % por pedido)', true, false],
+                  ['💰 Pagamento fixo — zero taxa por pedido', true, false],
                   ['Cancele quando quiser', true, false],
                 ].map(([feat, zapp, trad], i) => (
-                  <tr key={i} className="hover:bg-[#1a1a2e]/50 transition-colors">
-                    <td className="py-3 px-4 text-gray-300">{feat as string}</td>
+                  <tr key={i} className={`hover:bg-[#1a1a2e]/50 transition-colors ${(feat as string).startsWith('💰') ? 'bg-[#FF6B00]/5 border-l-2 border-l-[#FF6B00]' : ''}`}>
+                    <td className={`py-3 px-4 ${(feat as string).startsWith('💰') ? 'text-white font-semibold' : 'text-gray-300'}`}>{feat as string}</td>
                     <td className="py-3 px-4 text-center">
                       {zapp ? <span className="text-green-400 text-lg">✓</span> : <span className="text-red-400 text-lg">✗</span>}
                     </td>
@@ -365,6 +404,9 @@ export default function LandingPage() {
               🔥 30% OFF — PRIMEIROS 3 MESES
             </div>
             <h3 className="text-2xl font-bold mb-1">Plano Pro</h3>
+            <div className="inline-flex items-center gap-1.5 bg-green-500/15 border border-green-500/30 text-green-400 text-xs font-bold px-3 py-1 rounded-full mt-2 mb-3">
+              ✓ PAGAMENTO FIXO — SEM TAXA POR PEDIDO
+            </div>
             <div className="flex items-end justify-center gap-1 my-4">
               <span className="text-gray-400 line-through text-lg mr-2">R$ 297</span>
               <span className="text-gray-400 text-lg">R$</span>
