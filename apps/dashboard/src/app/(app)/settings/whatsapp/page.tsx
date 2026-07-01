@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Header } from '../../../../components/layout/Header';
 import { Button } from '../../../../components/ui/button';
 import api from '../../../../lib/api';
 import { MessageCircle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
@@ -38,9 +37,7 @@ export default function WhatsappSettingsPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <Header title="WhatsApp" />
-      <div className="flex-1 overflow-auto p-6">
+    <div className="flex-1 overflow-auto p-6">
         <div className="max-w-2xl space-y-6">
           <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -105,7 +102,6 @@ export default function WhatsappSettingsPage() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

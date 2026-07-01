@@ -1,8 +1,5 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Header } from '../../../../components/layout/Header';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
 import { useAuthStore } from '../../../../store/auth.store';
@@ -21,7 +18,6 @@ const SETTINGS_NAV = [
 
 export default function RestaurantSettingsPage() {
   const { restaurant, updateRestaurant } = useAuthStore();
-  const pathname = usePathname();
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -92,29 +88,7 @@ export default function RestaurantSettingsPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <Header title="Configurações" />
-      <div className="flex-1 flex overflow-hidden">
-        {/* Settings Nav */}
-        <div className="w-56 border-r border-[#2d2d4f] p-4">
-          <nav className="space-y-1">
-            {SETTINGS_NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                  pathname === item.href
-                    ? 'bg-[#FF6B00]/10 text-[#FF6B00]'
-                    : 'text-gray-400 hover:text-white hover:bg-[#1e1e35]'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
-        {/* Content */}
+    <div className="flex-1 overflow-auto p-8">
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-2xl space-y-6">
             <div>
@@ -205,7 +179,6 @@ export default function RestaurantSettingsPage() {
             </Button>
           </div>
         </div>
-      </div>
     </div>
   );
 }
