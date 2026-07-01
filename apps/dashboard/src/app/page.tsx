@@ -70,7 +70,7 @@ export default function LandingPage() {
   ];
 
   const faqs = [
-    { q: '💰 Realmente não tem taxa por pedido?', a: 'Sim, 100% real! Você paga apenas a mensalidade fixa de R$ 207/mês e pode processar quantos pedidos quiser — 10 pedidos ou 10.000 pedidos por mês, o preço é o mesmo. Nenhum centavo a mais por pedido.' },
+    { q: '💰 Realmente não tem taxa por pedido?', a: 'Sim, 100% real! Você paga apenas a mensalidade fixa de R$ 297/mês e pode processar quantos pedidos quiser — 10 pedidos ou 10.000 pedidos por mês, o preço é o mesmo. Nenhum centavo a mais por pedido.' },
     { q: 'Preciso de conhecimento técnico para usar?', a: 'Não! O ZappAI foi criado para ser simples. Qualquer pessoa consegue cadastrar o restaurante, montar o cardápio e começar a receber pedidos em menos de 1 hora.' },
     { q: 'Como funciona o período de teste gratuito?', a: '7 dias completamente grátis, sem precisar de cartão de crédito. Você usa todas as funcionalidades do Plano Pro sem nenhuma restrição.' },
     { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem multa ou fidelidade. Cancele quando quiser diretamente pelo painel de configurações, sem precisar entrar em contato com ninguém.' },
@@ -408,9 +408,9 @@ export default function LandingPage() {
               ✓ PAGAMENTO FIXO — SEM TAXA POR PEDIDO
             </div>
             <div className="flex items-end justify-center gap-1 my-4">
-              <span className="text-gray-400 line-through text-lg mr-2">R$ 297</span>
+              <span className="text-gray-400 line-through text-lg mr-2">R$ 497</span>
               <span className="text-gray-400 text-lg">R$</span>
-              <span className="text-5xl font-extrabold text-[#FF6B00]">207</span>
+              <span className="text-5xl font-extrabold text-[#FF6B00]">297</span>
               <span className="text-gray-400 mb-1">/mês</span>
             </div>
             <p className="text-gray-400 text-sm mb-6">7 dias grátis • Cancele quando quiser</p>
