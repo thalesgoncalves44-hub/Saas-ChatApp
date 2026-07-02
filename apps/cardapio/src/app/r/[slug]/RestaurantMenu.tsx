@@ -589,17 +589,69 @@ export default function RestaurantMenu({ restaurant, categories, reviews }: Prop
           </div>
 
           <div className="px-4 space-y-4 pb-10">
-            {/* Rating */}
-            {hasReviews && (
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Avaliação</p>
-                <div className="flex items-center gap-2">
-                  <Stars rating={Math.round(reviews!.avg)} size={16} />
-                  <span className="font-bold text-gray-900">{reviews!.avg}</span>
-                  <span className="text-xs text-gray-400">({reviews!.total} avaliações)</span>
+            {/* Reviews */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Avaliações</p>
+              {hasReviews ? (
+                <>
+                  {/* Summary */}
+                  <div className="flex gap-4 items-center mb-4">
+                    <div className="flex flex-col items-center shrink-0">
+                      <span className="text-4xl font-extrabold text-gray-900 leading-none">{reviews!.avg}</span>
+                      <Stars rating={Math.round(reviews!.avg)} size={14} />
+                      <span className="text-[10px] text-gray-400 mt-1">{reviews!.total} avaliações</span>
+                    </div>
+                    <div className="flex-1 space-y-1.5">
+                      {[5, 4, 3, 2, 1].map((star) => {
+                        const count = reviews!.recent.filter((r) => r.rating === star).length;
+                        const pct = reviews!.recent.length ? (count / reviews!.recent.length) * 100 : 0;
+                        return (
+                          <div key={star} className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-400 w-3 text-right">{star}</span>
+                            <Star size={8} fill="#f59e0b" style={{ color: '#f59e0b' }} />
+                            <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: '#f59e0b' }} />
+                            </div>
+                            <span className="text-[10px] text-gray-400 w-3">{count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {/* Recent reviews */}
+                  <div className="space-y-2">
+                    {reviews!.recent.slice(0, 5).map((r) => (
+                      <div key={r.id} className="bg-white rounded-xl border border-gray-200 p-3">
+                        <div className="flex items-start gap-2">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
+                            style={{ backgroundColor: primaryColor }}
+                          >
+                            {(r.customerName || 'A')[0].toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-xs font-bold text-gray-900 truncate">{r.customerName || 'Cliente'}</span>
+                              <span className="text-[10px] text-gray-400 shrink-0">{timeAgo(r.createdAt)}</span>
+                            </div>
+                            <Stars rating={r.rating} size={10} />
+                            {r.comment && (
+                              <p className="text-xs text-gray-600 mt-1 leading-relaxed">"{r.comment}"</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <Star size={28} className="mx-auto mb-2 text-gray-300" fill="currentColor" style={{ color: '#d1d5db' }} />
+                  <p className="text-sm text-gray-400">Ainda sem avaliações</p>
+                  <p className="text-xs text-gray-300 mt-0.5">As avaliações aparecem após os primeiros pedidos</p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Address */}
             {restaurant.address && (
