@@ -8,9 +8,10 @@ import api from '../../lib/api';
 interface HeaderProps {
   title: string;
   subtitle?: string;
+  action?: React.ReactNode;
 }
 
-export function Header({ title, subtitle }: HeaderProps) {
+export function Header({ title, subtitle, action }: HeaderProps) {
   const { restaurant, updateRestaurant } = useAuthStore();
   const [notifCount, setNotifCount] = useState(0);
   const [toggling, setToggling] = useState(false);
@@ -40,6 +41,7 @@ export function Header({ title, subtitle }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3">
+        {action && action}
         {/* Restaurant Open/Close Toggle */}
         {restaurant && (
           <button

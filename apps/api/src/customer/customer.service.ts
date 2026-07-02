@@ -155,6 +155,39 @@ export class CustomerService {
     }
   }
 
+  async getCustomerOrders(restaurantId: string, customerId: string) {
+    await this.assertOwnership(restaurantId, customerId);
+    return this.prisma.order.findMany({
+      where: { customerId, restaurantId },
+      orderBy: { createdAt: 'desc' },
+      include: { items: { include: { options: true, addons: true } }, payments: true },
+    });
+  }
+
+  async exportToCsv(restaurantId: string): Promise<string> {
+    const customers = await this.prisma.customer.findMany({
+      where: { restaurantId },
+      orderBy: { totalSpent: 'desc' },
+    });
+
+    const header = 'Nome,Telefone,Email,Aniversário,Endereço,Cidade,Pedidos,Total Gasto,Pontos,Segmento,Último Pedido';
+    const rows = customers.map((c) => [
+      `"${c.name}"`,
+      c.phone || '',
+      c.email || '',
+      c.birthDate ? new Date(c.birthDate).toLocaleDateString('pt-BR') : '',
+      `"${c.address || ''}"`,
+      c.city || '',
+      c.totalOrders,
+      Number(c.totalSpent).toFixed(2),
+      c.loyaltyPoints,
+      c.segment,
+      c.lastOrderAt ? new Date(c.lastOrderAt).toLocaleDateString('pt-BR') : '',
+    ].join(','));
+
+    return [header, ...rows].join('\n');
+  }
+
   private async assertOwnership(restaurantId: string, customerId: string) {
     const customer = await this.prisma.customer.findFirst({
       where: { id: customerId, restaurantId },

@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Res } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Response } from 'express';
 import { CustomerService } from './customer.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentRestaurant } from '../auth/decorators/current-restaurant.decorator';
@@ -57,5 +58,18 @@ export class CustomerController {
     @Body() body: { points: number },
   ) {
     return this.customerService.redeemLoyaltyPoints(restaurantId, id, body.points);
+  }
+
+  @Get(':id/orders')
+  getCustomerOrders(@CurrentRestaurant() restaurantId: string, @Param('id') id: string) {
+    return this.customerService.getCustomerOrders(restaurantId, id);
+  }
+
+  @Get('export/csv')
+  async exportCsv(@CurrentRestaurant() restaurantId: string, @Res() res: Response) {
+    const csv = await this.customerService.exportToCsv(restaurantId);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="clientes.csv"');
+    res.send('﻿' + csv); // BOM for Excel UTF-8
   }
 }
