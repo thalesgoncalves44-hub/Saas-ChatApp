@@ -3,10 +3,15 @@ import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Cardápio Digital – MenuFlow',
+  title: 'Cardápio Digital – ZappAI',
   description: 'Peça online pelo cardápio digital do seu restaurante favorito',
   manifest: '/manifest.json',
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'MenuFlow' },
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ZappAI' },
   formatDetection: { telephone: false },
 };
 
