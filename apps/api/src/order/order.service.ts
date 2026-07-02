@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
+import { PlanLimitService } from '../subscription/plan-limit.service';
 
 @Injectable()
 export class OrderService {
   constructor(
     private prisma: PrismaService,
     private events: EventsGateway,
+    private planLimit: PlanLimitService,
   ) {}
 
   async getOrders(restaurantId: string, filters: any = {}) {
@@ -92,6 +94,8 @@ export class OrderService {
   }
 
   async createOrder(restaurantId: string, data: any) {
+    await this.planLimit.checkOrderLimit(restaurantId);
+
     // Get next order number
     const lastOrder = await this.prisma.order.findFirst({
       where: { restaurantId },

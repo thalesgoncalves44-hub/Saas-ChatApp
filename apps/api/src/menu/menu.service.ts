@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PlanLimitService } from '../subscription/plan-limit.service';
 
 @Injectable()
 export class MenuService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private planLimit: PlanLimitService,
+  ) {}
 
   // ======== CATEGORIES ========
 
@@ -97,6 +101,8 @@ export class MenuService {
   }
 
   async createProduct(restaurantId: string, data: any) {
+    await this.planLimit.checkProductLimit(restaurantId);
+
     const { variations, addons, ...productData } = data;
 
     const lastProduct = await this.prisma.product.findFirst({

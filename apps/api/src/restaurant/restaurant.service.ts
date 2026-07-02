@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PlanLimitService } from '../subscription/plan-limit.service';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 
 @Injectable()
 export class RestaurantService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private planLimit: PlanLimitService,
+  ) {}
 
   async findById(id: string) {
     const restaurant = await this.prisma.restaurant.findUnique({
@@ -101,6 +105,8 @@ export class RestaurantService {
   }
 
   async inviteUser(restaurantId: string, data: any) {
+    await this.planLimit.checkUserLimit(restaurantId);
+
     const bcrypt = require('bcrypt');
     const tempPassword = Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
