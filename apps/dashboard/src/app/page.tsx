@@ -396,73 +396,95 @@ export default function LandingPage() {
 
       {/* Pricing */}
       <section id="preco" className="py-20 px-4">
-        <div className="max-w-lg mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Preço simples e transparente</h2>
-          <p className="text-gray-400 mb-10">Um plano completo. Sem taxas por pedido. Sem surpresas.</p>
-          <div className="bg-[#0d0d1a] border-2 border-[#FF6B00] rounded-2xl p-8 relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#FF6B00] text-white text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
-              🔥 30% OFF — PRIMEIROS 3 MESES
-            </div>
-            <h3 className="text-2xl font-bold mb-1">Plano Pro</h3>
-            <div className="inline-flex items-center gap-1.5 bg-green-500/15 border border-green-500/30 text-green-400 text-xs font-bold px-3 py-1 rounded-full mt-2 mb-3">
-              ✓ PAGAMENTO FIXO — SEM TAXA POR PEDIDO
-            </div>
-            <div className="flex items-end justify-center gap-1 my-4">
-              <span className="text-gray-400 line-through text-lg mr-2">R$ 497</span>
-              <span className="text-gray-400 text-lg">R$</span>
-              <span className="text-5xl font-extrabold text-[#FF6B00]">297</span>
-              <span className="text-gray-400 mb-1">/mês</span>
-            </div>
-            <p className="text-gray-400 text-sm mb-6">7 dias grátis • Cancele quando quiser</p>
-            <ul className="space-y-3 text-sm text-left mb-8">
-              {[
-                'Cardápio digital com QR Code',
-                'Gestão de pedidos Kanban',
-                'Bot WhatsApp automático',
-                'CRM de clientes',
-                'Programa de fidelidade',
-                'Relatórios financeiros',
-                'Controle de estoque',
-                'Cozinha (KDS)',
-                'Impressora térmica',
-                'PIX automático',
-                'Suporte via WhatsApp',
-                'Até 10 usuários por restaurante',
-              ].map((f) => (
-                <li key={f} className="flex items-center gap-3">
-                  <Check size={16} className="text-[#FF6B00] shrink-0" />
-                  <span className="text-gray-300">{f}</span>
-                </li>
-              ))}
-            </ul>
-            <Link href="/register" className="block bg-[#FF6B00] hover:bg-[#e55f00] text-white px-8 py-4 rounded-xl text-base font-semibold transition-colors text-center">
-              Começar 7 dias grátis
-            </Link>
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Planos simples e transparentes</h2>
+          <p className="text-gray-400 mb-3">Sem taxas por pedido. Sem surpresas. Cancele quando quiser.</p>
+          <div className="inline-flex items-center gap-1.5 bg-green-500/15 border border-green-500/30 text-green-400 text-xs font-bold px-3 py-1 rounded-full mb-10">
+            ✓ PAGAMENTO FIXO — ZERO TAXA POR PEDIDO EM TODOS OS PLANOS
+          </div>
 
-            {/* Guarantee */}
-            <div className="mt-6 flex items-center justify-center gap-3 bg-[#1a1a2e] rounded-xl p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {[
+              {
+                name: 'Starter', slug: 'starter', price: 147, original: 247,
+                desc: 'Ideal para começar', highlight: false,
+                features: ['Cardápio digital com QR Code', 'Gestão de pedidos Kanban', 'Até 150 pedidos/mês', 'Relatórios básicos', '1 usuário'],
+                missing: ['Bot WhatsApp', 'CRM de clientes', 'Programa de fidelidade'],
+              },
+              {
+                name: 'Pro', slug: 'pro', price: 297, original: 497,
+                desc: 'O mais escolhido', highlight: true,
+                features: ['Cardápio digital com QR Code', 'Gestão de pedidos Kanban', 'Pedidos ilimitados', 'Bot WhatsApp automático', 'CRM de clientes', 'Programa de fidelidade', 'Relatórios financeiros', 'Controle de estoque', 'Até 5 usuários'],
+                missing: [],
+              },
+              {
+                name: 'Premium', slug: 'premium', price: 397, original: 697,
+                desc: 'Para quem quer tudo', highlight: false,
+                features: ['Tudo do plano Pro', 'Pedidos ilimitados', 'Suporte prioritário via WhatsApp', 'Multi-unidade', 'Relatórios avançados', 'Gerente de conta dedicado', 'Até 10 usuários'],
+                missing: [],
+              },
+            ].map((plan) => (
+              <div key={plan.slug} className={`relative rounded-2xl p-8 flex flex-col ${plan.highlight ? 'bg-[#0d0d1a] border-2 border-[#FF6B00]' : 'bg-[#0d0d1a] border border-[#2d2d4f]'}`}>
+                {plan.highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#FF6B00] text-white text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
+                    🔥 MAIS POPULAR
+                  </div>
+                )}
+                <p className="text-gray-400 text-sm mb-1">{plan.desc}</p>
+                <h3 className="text-xl font-bold text-white mb-3">{plan.name}</h3>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-gray-500 line-through text-sm">R$ {plan.original}</span>
+                </div>
+                <div className="flex items-end gap-1 mb-6">
+                  <span className="text-gray-400 text-lg">R$</span>
+                  <span className="text-4xl font-extrabold text-[#FF6B00]">{plan.price}</span>
+                  <span className="text-gray-400 mb-1">/mês</span>
+                </div>
+                <ul className="space-y-2.5 text-sm text-left mb-8 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-gray-300">
+                      <Check size={14} className="text-[#FF6B00] shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                  {plan.missing.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-gray-600 line-through text-xs">
+                      <span className="shrink-0">✗</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={`/register?plan=${plan.slug}`}
+                  className={`block text-center px-6 py-3 rounded-xl text-sm font-semibold transition-colors ${plan.highlight ? 'bg-[#FF6B00] hover:bg-[#e55f00] text-white' : 'border border-[#2d2d4f] hover:border-[#FF6B00]/50 text-gray-300 hover:text-white'}`}
+                >
+                  Começar 7 dias grátis
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          {/* Guarantee + payment */}
+          <div className="max-w-lg mx-auto">
+            <div className="flex items-center justify-center gap-3 bg-[#0d0d1a] border border-[#2d2d4f] rounded-xl p-4 mb-4">
               <Shield size={28} className="text-green-400 shrink-0" />
               <div className="text-left">
                 <p className="text-white text-sm font-semibold">Garantia de 30 dias</p>
                 <p className="text-gray-400 text-xs">Se não ficar satisfeito, devolvemos 100% do seu dinheiro.</p>
               </div>
             </div>
-
-            {/* Payment methods */}
-            <div className="mt-4">
-              <p className="text-gray-500 text-xs mb-3">Formas de pagamento aceitas</p>
-              <div className="flex items-center justify-center gap-3">
-                <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-blue-400">PIX</div>
-                <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-yellow-400">VISA</div>
-                <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-red-400">MASTER</div>
-                <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-green-400">ELO</div>
-                <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-purple-400">AMEX</div>
-              </div>
+            <p className="text-gray-500 text-xs mb-3">Formas de pagamento aceitas</p>
+            <div className="flex items-center justify-center gap-3">
+              <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-blue-400">PIX</div>
+              <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-yellow-400">VISA</div>
+              <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-red-400">MASTER</div>
+              <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-green-400">ELO</div>
+              <div className="bg-[#1a1a2e] border border-[#2d2d4f] rounded px-3 py-1.5 text-xs font-bold text-purple-400">AMEX</div>
             </div>
           </div>
 
           {/* Trust badges */}
-          <div className="grid grid-cols-3 gap-4 mt-8">
+          <div className="grid grid-cols-3 gap-4 mt-10 max-w-lg mx-auto">
             {[
               { icon: Shield, label: 'Dados seguros', sub: 'SSL + criptografia' },
               { icon: Award, label: 'Suporte humano', sub: 'Seg a Sab, 8h–22h' },

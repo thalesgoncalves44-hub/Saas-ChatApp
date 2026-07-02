@@ -32,8 +32,10 @@ export class AuthService {
       slug = `${slug}-${Date.now()}`;
     }
 
-    // Get default plan
-    const plan = await this.prisma.plan.findFirst({ where: { isActive: true } });
+    // Get selected plan or fall back to starter
+    const plan = await this.prisma.plan.findFirst({
+      where: { isActive: true, slug: dto.planSlug ?? 'starter' },
+    }) ?? await this.prisma.plan.findFirst({ where: { isActive: true }, orderBy: { price: 'asc' } });
     if (!plan) {
       throw new BadRequestException('No active plans available');
     }

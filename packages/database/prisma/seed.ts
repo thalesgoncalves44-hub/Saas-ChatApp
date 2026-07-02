@@ -6,7 +6,31 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
-  // Create Plan
+  // Create Plans
+  await prisma.plan.upsert({
+    where: { slug: 'starter' },
+    update: {},
+    create: {
+      name: 'Starter',
+      slug: 'starter',
+      price: 147,
+      currency: 'BRL',
+      interval: 'month',
+      trialDays: 7,
+      maxProducts: 50,
+      maxOrders: 150,
+      maxUsers: 1,
+      features: [
+        'Cardápio digital',
+        'Gestão de pedidos Kanban',
+        'Até 150 pedidos/mês',
+        'Relatórios básicos',
+        '1 usuário',
+      ],
+      isActive: true,
+    },
+  });
+
   const plan = await prisma.plan.upsert({
     where: { slug: 'pro' },
     update: {},
@@ -19,10 +43,11 @@ async function main() {
       trialDays: 7,
       maxProducts: -1,
       maxOrders: -1,
-      maxUsers: 10,
+      maxUsers: 5,
       features: [
         'Cardápio digital',
         'Gestão de pedidos Kanban',
+        'Pedidos ilimitados',
         'CRM de clientes',
         'Bot WhatsApp',
         'PDV integrado',
@@ -31,12 +56,40 @@ async function main() {
         'Controle de estoque',
         'Programa de fidelidade',
         'Campanhas de marketing',
+        'Até 5 usuários',
       ],
       isActive: true,
     },
   });
 
-  console.log('Plan created:', plan.name);
+  await prisma.plan.upsert({
+    where: { slug: 'premium' },
+    update: {},
+    create: {
+      name: 'Premium',
+      slug: 'premium',
+      price: 397,
+      currency: 'BRL',
+      interval: 'month',
+      trialDays: 7,
+      maxProducts: -1,
+      maxOrders: -1,
+      maxUsers: 10,
+      features: [
+        'Tudo do plano Pro',
+        'Pedidos ilimitados',
+        'Até 10 usuários',
+        'Suporte prioritário via WhatsApp',
+        'Multi-unidade',
+        'Relatórios avançados',
+        'Campanhas de marketing',
+        'Gerente de conta dedicado',
+      ],
+      isActive: true,
+    },
+  });
+
+  console.log('Plans created: Starter, Pro, Premium');
 
   // Create Restaurant
   const restaurant = await prisma.restaurant.upsert({
