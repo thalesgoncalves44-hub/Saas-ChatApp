@@ -4,7 +4,11 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'ZappAI - Gestão de Restaurantes',
   description: 'Plataforma completa para gestão de restaurantes',
-  icons: { icon: '/favicon.ico' },
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
