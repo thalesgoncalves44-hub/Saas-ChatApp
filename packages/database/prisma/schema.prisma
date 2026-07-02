@@ -191,6 +191,7 @@ model Restaurant {
   printers      Printer[]
   notifications Notification[]
   webhooks      Webhook[]
+  reviews       Review[]
 
   @@index([slug])
   @@index([isActive])
@@ -451,6 +452,7 @@ model Order {
   coupon     Coupon?     @relation(fields: [couponId], references: [id])
   items      OrderItem[]
   payments   Payment[]
+  review     Review?
 
   @@unique([restaurantId, orderNumber])
   @@index([restaurantId, status])
@@ -769,4 +771,24 @@ model Webhook {
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
   @@index([restaurantId])
+}
+
+// ==================== REVIEWS ====================
+
+model Review {
+  id           String   @id @default(cuid())
+  restaurantId String
+  orderId      String   @unique
+  customerId   String?
+  rating       Int
+  comment      String?
+  customerName String?
+  createdAt    DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  order      Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customer   Customer?  @relation(fields: [customerId], references: [id])
+
+  @@index([restaurantId])
+  @@index([restaurantId, rating])
 }

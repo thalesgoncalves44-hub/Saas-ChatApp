@@ -43,8 +43,45 @@ export class OrderController {
   getPublicOrder(@Param('id') id: string) {
     return this.prisma.order.findUnique({
       where: { id },
-      include: { items: true, restaurant: { select: { name: true, primaryColor: true, logoUrl: true } } },
+      include: {
+        items: true,
+        customer: { select: { id: true, name: true } },
+        review: { select: { id: true, rating: true } },
+        restaurant: { select: { id: true, name: true, primaryColor: true, logoUrl: true, slug: true } },
+      },
     });
+  }
+
+  // Public endpoint: submit a review for an order
+  @Post('public/reviews')
+  async submitReview(@Body() body: { orderId: string; restaurantId: string; rating: number; comment?: string; customerName?: string; customerId?: string }) {
+    const { orderId, restaurantId, rating, comment, customerName, customerId } = body;
+    if (!orderId || !restaurantId || !rating || rating < 1 || rating > 5) {
+      return { error: 'Dados inválidos' };
+    }
+    const existing = await this.prisma.review.findUnique({ where: { orderId } });
+    if (existing) return { error: 'Pedido já avaliado' };
+
+    return this.prisma.review.create({
+      data: { orderId, restaurantId, rating, comment, customerName, customerId },
+    });
+  }
+
+  // Dashboard: get reviews for restaurant
+  @Get('reviews')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async getReviews(@CurrentRestaurant() restaurantId: string) {
+    const reviews = await this.prisma.review.findMany({
+      where: { restaurantId },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: { order: { select: { orderNumber: true, type: true } } },
+    });
+    const total = reviews.length;
+    const avg = total ? reviews.reduce((s, r) => s + r.rating, 0) / total : 0;
+    const dist = [5, 4, 3, 2, 1].map((star) => ({ star, count: reviews.filter((r) => r.rating === star).length }));
+    return { reviews, total, avg: Math.round(avg * 10) / 10, dist };
   }
 
   @Get('orders')

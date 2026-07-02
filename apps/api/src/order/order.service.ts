@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
 import { PlanLimitService } from '../subscription/plan-limit.service';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 
 @Injectable()
 export class OrderService {
@@ -9,6 +10,7 @@ export class OrderService {
     private prisma: PrismaService,
     private events: EventsGateway,
     private planLimit: PlanLimitService,
+    private whatsapp: WhatsappService,
   ) {}
 
   async getOrders(restaurantId: string, filters: any = {}) {
@@ -309,6 +311,21 @@ export class OrderService {
     // Emit WebSocket event
     this.events.emitToRestaurant(restaurantId, 'order:updated', { orderId, status, order: updatedOrder });
     this.events.emitToKitchen(restaurantId, 'order:updated', { orderId, status, order: updatedOrder });
+
+    // WhatsApp: order status notifications + review request on delivery
+    this.whatsapp.sendOrderNotification(restaurantId, orderId, status).catch(() => {});
+    if (status === 'DELIVERED' && updatedOrder.customer?.phone) {
+      const restaurant = await this.prisma.restaurant.findUnique({ where: { id: restaurantId }, select: { name: true, slug: true } });
+      const reviewUrl = `${process.env.CARDAPIO_URL || process.env.FRONTEND_URL}/r/${restaurant?.slug}/order/${orderId}`;
+      const firstName = updatedOrder.customer.name?.split(' ')[0] || 'Cliente';
+      const msg =
+        `⭐ *Sua opinião é muito importante, ${firstName}!*\n\n` +
+        `Como foi sua experiência no *${restaurant?.name}*?\n\n` +
+        `Avalie seu pedido #${updatedOrder.orderNumber} agora (leva menos de 1 minuto):\n` +
+        `${reviewUrl}\n\n` +
+        `Sua avaliação nos ajuda a melhorar cada vez mais! 🙏`;
+      this.whatsapp.sendMessage(restaurantId, updatedOrder.customer.phone, msg).catch(() => {});
+    }
 
     // Update table on delivery/cancellation
     if (['DELIVERED', 'CANCELLED'].includes(status) && order.tableId) {

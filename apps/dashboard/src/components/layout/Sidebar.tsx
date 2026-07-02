@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, ShoppingBag, UtensilsCrossed, BarChart3, Users,
   Tag, Megaphone, Wallet, Package, Settings, LogOut, Zap,
-  Table, ChefHat, Smartphone, Bell,
+  Table, ChefHat, Smartphone, Bell, Star,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../store/auth.store';
@@ -16,6 +16,7 @@ const navItems = [
   { label: 'Cardápio', href: '/menu', icon: UtensilsCrossed },
   { label: 'Mesas', href: '/tables', icon: Table },
   { label: 'Clientes', href: '/customers', icon: Users },
+  { label: 'Avaliações', href: '/reviews', icon: Star },
   { label: 'Cupons', href: '/coupons', icon: Tag },
   { label: 'Campanhas', href: '/campaigns', icon: Megaphone },
   { label: 'Financeiro', href: '/finance', icon: Wallet },
