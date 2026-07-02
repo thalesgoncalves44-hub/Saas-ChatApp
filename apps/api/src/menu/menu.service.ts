@@ -194,31 +194,53 @@ export class MenuService {
   }
 
   async getPublicMenu(slug: string) {
-    const restaurant = await this.prisma.restaurant.findUnique({ where: { slug } });
+    const restaurant = await this.prisma.restaurant.findUnique({
+      where: { slug },
+      include: { operatingHours: { orderBy: { dayOfWeek: 'asc' } } },
+    });
     if (!restaurant) throw new NotFoundException('Restaurant not found');
 
-    const categories = await this.prisma.category.findMany({
-      where: { restaurantId: restaurant.id, isActive: true },
-      include: {
-        products: {
-          where: { isActive: true, isAvailable: true },
-          include: {
-            variations: {
-              include: { options: { where: { isAvailable: true }, orderBy: { position: 'asc' } } },
-              orderBy: { position: 'asc' },
+    const [categories, recentReviews, reviewAggregate] = await Promise.all([
+      this.prisma.category.findMany({
+        where: { restaurantId: restaurant.id, isActive: true },
+        include: {
+          products: {
+            where: { isActive: true, isAvailable: true },
+            include: {
+              variations: {
+                include: { options: { where: { isAvailable: true }, orderBy: { position: 'asc' } } },
+                orderBy: { position: 'asc' },
+              },
+              addons: {
+                include: { options: { where: { isAvailable: true }, orderBy: { position: 'asc' } } },
+                orderBy: { position: 'asc' },
+              },
             },
-            addons: {
-              include: { options: { where: { isAvailable: true }, orderBy: { position: 'asc' } } },
-              orderBy: { position: 'asc' },
-            },
+            orderBy: { position: 'asc' },
           },
-          orderBy: { position: 'asc' },
         },
-      },
-      orderBy: { position: 'asc' },
-    });
+        orderBy: { position: 'asc' },
+      }),
+      this.prisma.review.findMany({
+        where: { restaurantId: restaurant.id },
+        orderBy: { createdAt: 'desc' },
+        take: 6,
+        select: { id: true, rating: true, comment: true, customerName: true, createdAt: true },
+      }),
+      this.prisma.review.aggregate({
+        where: { restaurantId: restaurant.id },
+        _avg: { rating: true },
+        _count: { id: true },
+      }),
+    ]);
 
-    return { restaurant, categories };
+    const reviews = {
+      avg: Math.round((reviewAggregate._avg.rating ?? 0) * 10) / 10,
+      total: reviewAggregate._count.id,
+      recent: recentReviews,
+    };
+
+    return { restaurant, categories, reviews };
   }
 
   private async assertCategoryOwnership(restaurantId: string, categoryId: string) {

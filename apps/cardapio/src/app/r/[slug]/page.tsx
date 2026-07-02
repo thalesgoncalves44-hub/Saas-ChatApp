@@ -35,5 +35,5 @@ export default async function RestaurantPage({ params }: { params: { slug: strin
     );
   }
 
-  return <RestaurantMenu restaurant={data.restaurant} categories={data.categories} />;
+  return <RestaurantMenu restaurant={data.restaurant} categories={data.categories} reviews={data.reviews} />;
 }
