@@ -91,4 +91,24 @@ export class UpdateRestaurantDto {
   @IsString()
   @IsOptional()
   pixKeyType?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  logoUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  bannerUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  instagram?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  whatsapp?: string;
 }
