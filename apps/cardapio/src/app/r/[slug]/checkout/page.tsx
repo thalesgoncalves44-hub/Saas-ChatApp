@@ -216,6 +216,13 @@ export default function CheckoutPage() {
 
   // PIX success screen
   if (pixData && orderId) {
+    const pixMsg =
+      orderType === 'TAKEOUT'
+        ? 'Pague o PIX e venha retirar — seu pedido já estará sendo preparado!'
+        : orderType === 'DINE_IN'
+        ? 'Pague o PIX e aguarde na mesa — seu pedido já está sendo preparado!'
+        : 'Pague com PIX para confirmar sua entrega';
+
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
         <div className="bg-white rounded-3xl shadow-sm p-6 max-w-sm w-full text-center space-y-4">
@@ -223,7 +230,7 @@ export default function CheckoutPage() {
             <Check size={32} className="text-green-600" />
           </div>
           <h2 className="text-xl font-bold text-gray-900">Pedido realizado!</h2>
-          <p className="text-gray-500 text-sm">Pague com PIX para confirmar seu pedido</p>
+          <p className="text-gray-500 text-sm">{pixMsg}</p>
           {pixData.qrCode && (
             <img src={pixData.qrCode} alt="QR Code PIX" className="w-48 h-48 mx-auto rounded-xl border" />
           )}
@@ -432,10 +439,42 @@ export default function CheckoutPage() {
           <h3 className="font-bold text-gray-900 mb-3 text-sm">Forma de pagamento</h3>
           <div className="grid grid-cols-2 gap-2">
             {([
-              { value: 'PIX', label: 'PIX', sub: 'Aprovação instantânea' },
-              { value: 'CREDIT_CARD', label: 'Crédito', sub: 'Cartão de crédito' },
-              { value: 'DEBIT_CARD', label: 'Débito', sub: 'Cartão de débito' },
-              { value: 'CASH', label: 'Dinheiro', sub: 'Pagar na entrega' },
+              {
+                value: 'PIX',
+                label: 'PIX',
+                sub: orderType === 'TAKEOUT'
+                  ? 'Pagar agora, retirar pronto'
+                  : orderType === 'DINE_IN'
+                  ? 'Pagar agora pela mesa'
+                  : 'Aprovação instantânea',
+              },
+              {
+                value: 'CREDIT_CARD',
+                label: 'Crédito',
+                sub: orderType === 'TAKEOUT'
+                  ? 'Cartão na retirada'
+                  : orderType === 'DINE_IN'
+                  ? 'Cartão na mesa'
+                  : 'Cartão na entrega',
+              },
+              {
+                value: 'DEBIT_CARD',
+                label: 'Débito',
+                sub: orderType === 'TAKEOUT'
+                  ? 'Cartão na retirada'
+                  : orderType === 'DINE_IN'
+                  ? 'Cartão na mesa'
+                  : 'Cartão na entrega',
+              },
+              {
+                value: 'CASH',
+                label: 'Dinheiro',
+                sub: orderType === 'TAKEOUT'
+                  ? 'Pagar na retirada'
+                  : orderType === 'DINE_IN'
+                  ? 'Pagar na mesa'
+                  : 'Pagar na entrega',
+              },
             ] as const).map(({ value, label, sub }) => (
               <button
                 key={value}
