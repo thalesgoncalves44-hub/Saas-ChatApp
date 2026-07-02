@@ -17,6 +17,7 @@ export class CreateProductDto {
   @ApiProperty() @IsNumber() @Min(0) price: number;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() imageUrl?: string;
+  @IsOptional() @IsString() videoUrl?: string;
   @IsOptional() @IsNumber() @Min(0) originalPrice?: number;
   @IsOptional() @IsString() sku?: string;
   @IsOptional() @IsBoolean() isActive?: boolean;

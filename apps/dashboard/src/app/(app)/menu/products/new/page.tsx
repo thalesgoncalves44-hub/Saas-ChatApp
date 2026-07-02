@@ -10,6 +10,11 @@ interface Category {
   name: string;
 }
 
+function extractYouTubeId(url: string) {
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : '';
+}
+
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -23,6 +28,7 @@ export default function NewProductPage() {
     promotionalPrice: '',
     categoryId: '',
     imageUrl: '',
+    videoUrl: '',
     sku: '',
     trackStock: false,
     stockQuantity: '',
@@ -150,21 +156,46 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Image */}
-        <div className="bg-[#1a1a2e] rounded-xl p-5 space-y-3">
-          <h3 className="font-semibold text-white">Imagem</h3>
-          <div>
-            <label className="text-sm text-gray-400 block mb-1">URL da imagem</label>
+        {/* Mídia */}
+        <div className="bg-[#1a1a2e] rounded-xl p-5 space-y-4">
+          <h3 className="font-semibold text-white">Mídia</h3>
+
+          <div className="space-y-2">
+            <label className="text-sm text-gray-400 block">URL da imagem</label>
             <input
               value={form.imageUrl}
               onChange={(e) => set('imageUrl', e.target.value)}
               placeholder="https://exemplo.com/imagem.jpg"
               className="w-full bg-[#0f0f1a] border border-[#2d2d4f] rounded-lg px-4 py-2.5 text-white text-sm outline-none focus:border-[#FF6B00]"
             />
+            {form.imageUrl && (
+              <img src={form.imageUrl} alt="Preview" className="w-32 h-32 object-cover rounded-xl border border-[#2d2d4f]" />
+            )}
           </div>
-          {form.imageUrl && (
-            <img src={form.imageUrl} alt="Preview" className="w-32 h-32 object-cover rounded-xl border border-[#2d2d4f]" />
-          )}
+
+          <div className="space-y-2">
+            <label className="text-sm text-gray-400 block">URL do vídeo curto</label>
+            <p className="text-xs text-gray-600">Cole um link do YouTube, Instagram Reels ou vídeo .mp4 direto. O cliente verá em tela cheia no cardápio.</p>
+            <input
+              value={form.videoUrl}
+              onChange={(e) => set('videoUrl', e.target.value)}
+              placeholder="https://youtube.com/watch?v=... ou https://exemplo.com/video.mp4"
+              className="w-full bg-[#0f0f1a] border border-[#2d2d4f] rounded-lg px-4 py-2.5 text-white text-sm outline-none focus:border-[#FF6B00]"
+            />
+            {form.videoUrl && (
+              <div className="mt-2 rounded-xl overflow-hidden border border-[#2d2d4f] aspect-video bg-black">
+                {form.videoUrl.includes('youtube.com') || form.videoUrl.includes('youtu.be') ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${extractYouTubeId(form.videoUrl)}`}
+                    className="w-full h-full"
+                    allow="fullscreen"
+                  />
+                ) : (
+                  <video src={form.videoUrl} controls className="w-full h-full object-contain" />
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stock */}

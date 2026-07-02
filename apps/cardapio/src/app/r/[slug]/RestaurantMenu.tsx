@@ -1,7 +1,15 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, Search, Clock, MapPin, X, Plus, Minus, Check, ChevronRight, Flame } from 'lucide-react';
+import { ShoppingCart, Search, Clock, MapPin, X, Plus, Minus, Check, ChevronRight, Flame, Play } from 'lucide-react';
 import { useCartStore } from '../../../lib/cart.store';
+
+function extractYouTubeId(url: string) {
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : '';
+}
+function isYouTube(url: string) {
+  return url.includes('youtube.com') || url.includes('youtu.be');
+}
 
 interface Props {
   restaurant: any;
@@ -20,6 +28,7 @@ export default function RestaurantMenu({ restaurant, categories }: Props) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [selectedAddons, setSelectedAddons] = useState<Record<string, number>>({});
   const [justAdded, setJustAdded] = useState(false);
+  const [videoFullscreen, setVideoFullscreen] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const { addItem, items, getTotal, getItemCount } = useCartStore();
@@ -257,11 +266,18 @@ export default function RestaurantMenu({ restaurant, categories }: Props) {
                         </div>
                         <div className="relative flex-shrink-0">
                           {product.imageUrl ? (
-                            <img
-                              src={product.imageUrl}
-                              alt={product.name}
-                              className="w-24 h-24 object-cover rounded-xl"
-                            />
+                            <div className="relative">
+                              <img
+                                src={product.imageUrl}
+                                alt={product.name}
+                                className="w-24 h-24 object-cover rounded-xl"
+                              />
+                              {product.videoUrl && (
+                                <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center">
+                                  <Play size={10} className="text-white ml-0.5" fill="currentColor" />
+                                </div>
+                              )}
+                            </div>
                           ) : (
                             <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-3xl">🍽️</div>
                           )}
@@ -304,6 +320,44 @@ export default function RestaurantMenu({ restaurant, categories }: Props) {
         </div>
       )}
 
+      {/* ── Video Fullscreen Overlay ── */}
+      {videoFullscreen && (
+        <div
+          className="fixed inset-0 z-[60] bg-black flex flex-col"
+          onClick={() => setVideoFullscreen(null)}
+        >
+          <div className="flex items-center justify-between px-4 pt-safe pt-4 pb-2 shrink-0">
+            <span className="text-white font-semibold text-sm opacity-80">Vídeo do produto</span>
+            <button
+              onClick={() => setVideoFullscreen(null)}
+              className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center"
+            >
+              <X size={18} className="text-white" />
+            </button>
+          </div>
+          <div className="flex-1 flex items-center justify-center p-2" onClick={(e) => e.stopPropagation()}>
+            {isYouTube(videoFullscreen) ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${extractYouTubeId(videoFullscreen)}?autoplay=1&playsinline=1`}
+                className="w-full rounded-xl"
+                style={{ aspectRatio: '9/16', maxHeight: '80vh' }}
+                allow="autoplay; fullscreen"
+                allowFullScreen
+              />
+            ) : (
+              <video
+                src={videoFullscreen}
+                autoPlay
+                controls
+                playsInline
+                className="w-full rounded-xl"
+                style={{ maxHeight: '80vh' }}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Product Modal (bottom sheet) ── */}
       {selectedProduct && (
         <div
@@ -331,13 +385,34 @@ export default function RestaurantMenu({ restaurant, categories }: Props) {
             </div>
 
             <div className="p-4 space-y-4 pb-6">
-              {/* Product image + description */}
+              {/* Product image + video */}
               {selectedProduct.imageUrl && (
-                <img
-                  src={selectedProduct.imageUrl}
-                  alt={selectedProduct.name}
-                  className="w-full h-48 object-cover rounded-2xl"
-                />
+                <div className="relative">
+                  <img
+                    src={selectedProduct.imageUrl}
+                    alt={selectedProduct.name}
+                    className="w-full h-48 object-cover rounded-2xl"
+                  />
+                  {selectedProduct.videoUrl && (
+                    <button
+                      onClick={() => setVideoFullscreen(selectedProduct.videoUrl)}
+                      className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/30 hover:bg-black/40 transition-colors group"
+                    >
+                      <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-active:scale-95 transition-transform">
+                        <Play size={22} className="text-gray-900 ml-1" fill="currentColor" />
+                      </div>
+                    </button>
+                  )}
+                </div>
+              )}
+              {!selectedProduct.imageUrl && selectedProduct.videoUrl && (
+                <button
+                  onClick={() => setVideoFullscreen(selectedProduct.videoUrl)}
+                  className="w-full h-32 rounded-2xl flex items-center justify-center gap-2 font-semibold text-sm text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <Play size={18} fill="currentColor" /> Ver vídeo do produto
+                </button>
               )}
 
               <div>
