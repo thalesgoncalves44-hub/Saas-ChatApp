@@ -142,6 +142,49 @@ export class WhatsappService {
     }
   }
 
+  async sendPixConfirmation(restaurantId: string, orderId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId },
+      include: {
+        customer: true,
+        items: true,
+        restaurant: true,
+      },
+    });
+    if (!order?.customer?.phone) return;
+
+    const firstName = order.customer.name?.split(' ')[0] || 'Cliente';
+    const restaurantName = order.restaurant?.name || 'restaurante';
+
+    const itemLines = order.items
+      .map((i: any) => `  • ${i.quantity}x ${i.name} — R$ ${(Number(i.unitPrice) * i.quantity).toFixed(2).replace('.', ',')}`)
+      .join('\n');
+
+    const total = `R$ ${Number(order.total).toFixed(2).replace('.', ',')}`;
+    const eta = order.estimatedTime || 30;
+
+    const typeMap: Record<string, string> = {
+      DELIVERY: `🛵 Entrega em até *${eta} minutos*`,
+      TAKEOUT: `🏪 Retirada em loja em até *${eta} minutos*`,
+      DINE_IN: `🍽️ Será servido na mesa em breve`,
+    };
+    const typeMsg = typeMap[order.type as string] || `⏱️ Estimativa: *${eta} min*`;
+
+    const trackUrl = `${process.env.CARDAPIO_URL || process.env.FRONTEND_URL}/r/${order.restaurant?.slug}/order/${order.id}`;
+
+    const message =
+      `✅ *Pagamento confirmado!*\n\n` +
+      `Olá, *${firstName}*! Seu pedido foi confirmado no *${restaurantName}* 🎉\n\n` +
+      `📋 *Pedido #${order.orderNumber}*\n` +
+      `${itemLines}\n\n` +
+      `💰 *Total: ${total}*\n` +
+      `${typeMsg}\n\n` +
+      `Acompanhe seu pedido:\n${trackUrl}\n\n` +
+      `Obrigado pela preferência! 😊`;
+
+    await this.sendMessage(restaurantId, order.customer.phone, message);
+  }
+
   async sendOrderNotification(restaurantId: string, orderId: string, event: string) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId },

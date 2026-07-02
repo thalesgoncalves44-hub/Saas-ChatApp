@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 import axios from 'axios';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class PaymentService {
   constructor(
     private prisma: PrismaService,
     private events: EventsGateway,
+    private whatsapp: WhatsappService,
   ) {}
 
   async createPixPayment(restaurantId: string, orderId: string) {
@@ -65,8 +67,13 @@ export class PaymentService {
         data: {
           pixQrCode: qrCodeImage,
           pixCopyPaste: mockPixCode,
+          status: 'CONFIRMED',
+          confirmedAt: new Date(),
         },
       });
+
+      // In demo mode, payment is simulated — send WhatsApp confirmation immediately
+      this.whatsapp.sendPixConfirmation(order.restaurantId, orderId).catch(() => {});
 
       return { qrCode: qrCodeImage, copyPaste: mockPixCode };
     }
@@ -101,6 +108,9 @@ export class PaymentService {
           orderId: order.id,
           status: 'CONFIRMED',
         });
+
+        // WhatsApp confirmation to customer
+        this.whatsapp.sendPixConfirmation(order.restaurantId, order.id).catch(() => {});
 
         await this.prisma.notification.create({
           data: {
